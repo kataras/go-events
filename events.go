@@ -1,4 +1,12 @@
+// Package events provides simple EventEmmiter support for Go Programming Language
 package events
+
+import "sync"
+
+const (
+	// Version current version number
+	Version = "0.0.1"
+)
 
 type (
 	// EventListeners the listeners type, it's just a []func(...interface{})
@@ -23,6 +31,7 @@ type (
 
 	emmiter struct {
 		evtListeners Events
+		mu           sync.Mutex
 	}
 )
 
@@ -31,9 +40,7 @@ func (e Events) copyTo(emmiter EventEmmiter) {
 		// register the events to/with their listeners
 		for evt, listeners := range e {
 			if len(listeners) > 0 {
-				for i := range listeners {
-					emmiter.On(evt, listeners[i])
-				}
+				emmiter.On(evt, listeners...)
 			}
 		}
 	}
@@ -55,6 +62,7 @@ func On(evt string, listener ...func(data ...interface{})) {
 }
 
 func (e *emmiter) On(evt string, listener ...func(data ...interface{})) {
+	e.mu.Lock()
 	if e.evtListeners == nil {
 		e.evtListeners = Events{}
 	}
@@ -62,6 +70,7 @@ func (e *emmiter) On(evt string, listener ...func(data ...interface{})) {
 		e.evtListeners[evt] = EventListeners{}
 	}
 	e.evtListeners[evt] = append(e.evtListeners[evt], listener...)
+	e.mu.Unlock()
 }
 
 // Emit fires a particular event, second parameter(s) is/are optional, if filled then the event has some information to send to the listener
@@ -91,7 +100,8 @@ func (e *emmiter) Remove(evt string) bool {
 	if e.evtListeners == nil {
 		return false // has nothing to remove
 	}
-
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	if listeners := e.evtListeners[evt]; listeners != nil {
 		//e.evtListeners[evt] = EventListeners{}
 		delete(e.evtListeners, evt)
