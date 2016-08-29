@@ -8,7 +8,7 @@ const (
 	Version = "0.0.1"
 )
 
-type (
+type ( 
 	// EventListeners the listeners type, it's just a []func(...interface{})
 	EventListeners []func(...interface{})
 	// Events the type for registered listeners, it's just a map[string][]func(...interface{})
