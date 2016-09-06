@@ -15,7 +15,8 @@
 [Language Widget]: https://img.shields.io/badge/powered_by-Go-3362c2.svg?style=flat-square
 [Language]: http://golang.org
 [Platform Widget]: https://img.shields.io/badge/platform-All-yellow.svg?style=flat-square
-[Awesome Widget]: https://img.shields.io/badge/awesome-%E2%9C%93-ff69b4.svg?style=flat-square
+[Awesome Widget]: https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg?style=flat-square
+[Awesome WidgetAlternative]: https://img.shields.io/badge/awesome-%E2%9C%93-ff69b4.svg?style=flat-square
 [Awesome]: https://github.com/avelino/awesome-go
 
 <p align="center">
