@@ -6,7 +6,7 @@ import (
 )
 
 var testEvents = Events{
-	"user_created": EventListeners{
+	"user_created": []Listener{
 		func(payload ...interface{}) {
 			fmt.Printf("A new User just created!\n")
 		},
@@ -14,12 +14,12 @@ var testEvents = Events{
 			fmt.Printf("A new User just created, *from second event listener\n")
 		},
 	},
-	"user_joined": EventListeners{func(payload ...interface{}) {
+	"user_joined": []Listener{func(payload ...interface{}) {
 		user := payload[0].(string)
 		room := payload[1].(string)
 		fmt.Printf("%s joined to room: %s\n", user, room)
 	}},
-	"user_left": EventListeners{func(payload ...interface{}) {
+	"user_left": []Listener{func(payload ...interface{}) {
 		user := payload[0].(string)
 		room := payload[1].(string)
 		fmt.Printf("%s left from the room: %s\n", user, room)
@@ -80,15 +80,49 @@ func TestEvents(t *testing.T) {
 	}
 
 	if e.Len() != 1 {
-		t.Fatalf("Length of the listeners is: %d, while expecting: %d", e.LenListeners("my_event"), 1)
+		t.Fatalf("Length of the listeners is: %d, while expecting: %d", e.ListenerCount("my_event"), 1)
 	}
 
-	e.Remove("my_event")
+	e.RemoveAllListeners("my_event")
 	if e.Len() != 0 {
 		t.Fatalf("Length of the events is: %d, while expecting: %d", e.Len(), 0)
 	}
 
 	if e.Len() != 0 {
-		t.Fatalf("Length of the listeners is: %d, while expecting: %d", e.LenListeners("my_event"), 0)
+		t.Fatalf("Length of the listeners is: %d, while expecting: %d", e.ListenerCount("my_event"), 0)
 	}
+}
+
+func TestEventsOnce(t *testing.T) {
+	// on default
+	Clear()
+
+	var count = 0
+	Once("my_event", func(payload ...interface{}) {
+		if count > 0 {
+			t.Fatalf("Once's listener fired more than one time! count: %d", count)
+		}
+		count++
+	})
+
+	if l := ListenerCount("my_event"); l != 1 {
+		t.Fatalf("Real  event's listeners should be: %d but has: %d", 1, l)
+	}
+
+	if l := len(Listeners("my_event")); l != 1 {
+		t.Fatalf("Real  event's listeners (from Listeners) should be: %d but has: %d", 1, l)
+	}
+
+	for i := 0; i < 10; i++ {
+		Emit("my_event")
+	}
+
+	if l := ListenerCount("my_event"); l > 0 {
+		t.Fatalf("Real event's listeners length count should be: %d but has: %d", 0, l)
+	}
+
+	if l := len(Listeners("my_event")); l > 0 {
+		t.Fatalf("Real event's listeners length count ( from Listeners) should be: %d but has: %d", 0, l)
+	}
+
 }

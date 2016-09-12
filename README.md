@@ -1,43 +1,73 @@
-[Travis Widget]: https://img.shields.io/travis/kataras/go-events.svg?style=flat-square
-[Travis]: http://travis-ci.org/kataras/go-events
-[License Widget]: https://img.shields.io/badge/license-MIT%20%20License%20-E91E63.svg?style=flat-square
-[License]: https://github.com/kataras/go-events/blob/master/LICENSE
-[Release Widget]: https://img.shields.io/badge/release-v0.0.1-blue.svg?style=flat-square
-[Release]: https://github.com/kataras/go-events/releases
-[Chat Widget]: https://img.shields.io/badge/community-chat-00BCD4.svg?style=flat-square
-[Chat]: https://kataras.rocket.chat/channel/go-events
-[ChatMain]: https://kataras.rocket.chat/channel/go-events
-[ChatAlternative]: https://gitter.im/kataras/go-events
-[Report Widget]: https://img.shields.io/badge/report%20card-A%2B-F44336.svg?style=flat-square
-[Report]: http://goreportcard.com/report/kataras/go-events
-[Documentation Widget]: https://img.shields.io/badge/docs-reference-5272B4.svg?style=flat-square
-[Documentation]: https://godoc.org/github.com/kataras/go-events
-[Language Widget]: https://img.shields.io/badge/powered_by-Go-3362c2.svg?style=flat-square
-[Language]: http://golang.org
-[Platform Widget]: https://img.shields.io/badge/platform-All-yellow.svg?style=flat-square
-[Awesome Widget]: https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg?style=flat-square
-[Awesome WidgetAlternative]: https://img.shields.io/badge/awesome-%E2%9C%93-ff69b4.svg?style=flat-square
-[Awesome]: https://github.com/avelino/awesome-go
-
 <p align="center">
   <img src="/logo.jpg" height="400">
+  <br/>
+
+ <a href="https://travis-ci.org/kataras/go-events"><img src="https://img.shields.io/travis/kataras/go-events.svg?style=flat-square" alt="Build Status"></a>
+
+
+ <a href="https://github.com/avelino/awesome-go"><img src="https://img.shields.io/badge/awesome-%E2%9C%93-ff69b4.svg?style=flat-square" alt="Awesome GoLang"></a>
+
+ <a href="http://goreportcard.com/report/kataras/go-events"><img src="https://img.shields.io/badge/-A%2B-F44336.svg?style=flat-square" alt="Report A+"></a>
+
+
+ <a href="https://github.com/kataras/go-events/blob/master/LICENSE"><img src="https://img.shields.io/badge/%20license-MIT%20-E91E63.svg?style=flat-square" alt="License"></a>
+
+
+
+ <a href="https://github.com/kataras/go-events/releases"><img src="https://img.shields.io/badge/%20release%20-%20v0.0.2-blue.svg?style=flat-square" alt="Releases"></a>
+
+ <a href="https://godoc.org/github.com/kataras/go-events"><img src="https://img.shields.io/badge/%20docs-reference-5272B4.svg?style=flat-square" alt="Read me docs"></a>
+
+ <a href="https://kataras.rocket.chat/channel/go-events"><img src="https://img.shields.io/badge/%20community-chat-00BCD4.svg?style=flat-square" alt="Chat"></a>
+
+<br/><br/>
+
+Simple EventEmmiter for Go Programming Language. Inspired by <a href="https://nodejs.org/api/events.html">Nodejs EventEmitter</a>.
+
 </p>
-
-# Events [![Travis Widget]][Travis] [![Awesome Widget]][Awesome] [![License Widget]][License] [![Release Widget]][Release]
-
-Simple nodejs-style EventEmmiter for Go Programming Language.
-
 
 
 Quick view
 ------------
+`New() EventEmmiter  // New returns a new, empty, EventEmmiter`
 
-- `New` returns a new, empty EventEmmiter
-- `On` is the func which registers the event listeners for a specific event
-- `Emit` fires a particular event, this will call all functions(listeners) registered to this particular event
-- `Remove` remove all registered listeners from a particular event
-- `Len` returns the length of all registered events
-- `LenListeners` returns the length of all registered listeners to a particular event
+
+```go
+// AddListener is an alias for .On(eventName, listener).
+AddListener(EventName, ...Listener)
+// Emit fires a particular event,
+// Synchronously calls each of the listeners registered for the event named
+// eventName, in the order they were registered,
+// passing the supplied arguments to each.
+Emit(EventName, ...interface{})
+// EventNames returns an array listing the events for which the emitter has registered listeners.
+// The values in the array will be strings.
+EventNames() []EventName
+// GetMaxListeners returns the max listeners for this emmiter
+// see SetMaxListeners
+GetMaxListeners() int
+// ListenerCount returns the length of all registered listeners to a particular event
+ListenerCount(EventName) int
+// Listeners returns a copy of the array of listeners for the event named eventName.
+Listeners(EventName) []Listener
+// On registers a particular listener for an event, func receiver parameter(s) is/are optional
+On(EventName, ...Listener)
+// Once adds a one time listener function for the event named eventName.
+// The next time eventName is triggered, this listener is removed and then invoked.
+Once(EventName, ...Listener)
+// RemoveAllListeners removes all listeners, or those of the specified eventName.
+// Note that it will remove the event itself.
+// Returns an indicator if event and listeners were found before the remove.
+RemoveAllListeners(EventName) bool
+// Clear removes all events and all listeners, restores Events to an empty value
+Clear()
+// SetMaxListeners obviously this function allows the MaxListeners
+// to be decrease or increase. Set to zero for unlimited
+SetMaxListeners(int)
+// Len returns the length of all registered events
+Len() int
+```
+
 
 ```go
 import "github.com/kataras/go-events"
@@ -81,18 +111,16 @@ events.On("my_event", func(payload ...interface{}) {
 })
 
 println(events.Len()) // prints 1
-println(events.LenListeners("my_event")) // prints 2
+println(events.ListenerCount("my_event")) // prints 2
 
 // Remove our event, when/if we don't need this or we want to clear all of its listeners
-events.Remove("my_event")
+events.RemoveAllListeners("my_event")
 
 println(events.Len()) // prints 0
-println(events.LenListeners("my_event")) // prints 0
+println(events.ListenerCount("my_event")) // prints 0
 
 
 ```
-[![Documentation Widget]][Documentation] [![Chat Widget]][Chat]
-
 Installation
 ------------
 
@@ -102,7 +130,6 @@ The only requirement is the [Go Programming Language](https://golang.org/dl).
 $ go get -u github.com/kataras/go-events
 ```
 
-[![Language Widget]][Language] ![Platform Widget]
 
 FAQ
 ------------
@@ -112,7 +139,7 @@ Explore [these questions](https://github.com/kataras/go-events/issues?go-events=
 Versioning
 ------------
 
-Current: v0.0.1
+Current: v0.0.2
 
 Read more about Semantic Versioning 2.0.0
 
@@ -135,18 +162,12 @@ Contributing
 
 If you are interested in contributing to the go-events project, please make a PR.
 
-[![Report Widget]][Report]
-
-
-README template
-------------
-
-https://github.com/kataras/github-go-readme
-
-
 License
 ------------
 
 This project is licensed under the MIT License.
 
 License can be found [here](LICENSE).
+
+[Chat Widget]: https://img.shields.io/badge/community-chat-00BCD4.svg?style=flat-square
+[Chat]: https://kataras.rocket.chat/channel/go-events
