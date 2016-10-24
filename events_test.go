@@ -126,3 +126,41 @@ func TestEventsOnce(t *testing.T) {
 	}
 
 }
+
+func TestRemoveListener(t *testing.T) {
+	// on default
+	e := New()
+
+	var count = 0
+	listener := func(payload ...interface{}) {
+		if count > 1 {
+			t.Fatal("Event listener should be removed")
+		}
+
+		count++
+	}
+
+	e.AddListener("my_event", listener)
+	e.AddListener("my_event", func(payload ...interface{}) {})
+	e.AddListener("another_event", func(payload ...interface{}) {})
+
+	e.Emit("my_event")
+
+	if e.RemoveListener("my_event", listener) != true {
+		t.Fatal("Should return 'true' when removes found listener")
+	}
+
+	if e.RemoveListener("foo_bar", listener) != false {
+		t.Fatal("Should return 'false' when removes nothing")
+	}
+
+	if e.Len() != 2 {
+		t.Fatal("Length of all listeners must be 2")
+	}
+
+	if e.ListenerCount("my_event") != 1 {
+		t.Fatal("Length of 'my_event' event listeners must be 1")
+	}
+
+	e.Emit("my_event")
+}

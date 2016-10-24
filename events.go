@@ -4,6 +4,7 @@ package events
 import (
 	"log"
 	"sync"
+	"reflect"
 )
 
 const (
@@ -56,6 +57,9 @@ type (
 		// Note that it will remove the event itself.
 		// Returns an indicator if event and listeners were found before the remove.
 		RemoveAllListeners(EventName) bool
+		// RemoveListener removes given listener from the event named eventName.
+		// Returns an indicator whether listener was removed
+		RemoveListener(EventName, Listener) bool
 		// Clear removes all events and all listeners, restores Events to an empty value
 		Clear()
 		// SetMaxListeners obviously this function allows the MaxListeners
@@ -314,6 +318,51 @@ func (e *emmiter) RemoveAllListeners(evt EventName) bool {
 	}
 
 	return false
+}
+
+// RemoveListener removes the specified listener from the listener array for the event named eventName.
+func (e *emmiter) RemoveListener(evt EventName, listener Listener) bool {
+	if e.evtListeners == nil {
+		return false
+	}
+
+	if listener == nil {
+		return false
+	}
+
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	listeners := e.evtListeners[evt];
+
+	if listeners == nil {
+		return false
+	}
+
+	idx := -1
+	listenerPointer := reflect.ValueOf(listener).Pointer()
+
+	for index, item := range listeners {
+		itemPointer := reflect.ValueOf(item).Pointer()
+		if itemPointer == listenerPointer {
+			idx = index
+			break
+		}
+	}
+
+	if idx < 0 {
+		return  false
+	}
+
+	var modifiedListeners []Listener = nil
+
+	if len(listeners) > 1 {
+		modifiedListeners = append(listeners[:idx], listeners[idx+1:]...)
+	}
+
+	e.evtListeners[evt] = modifiedListeners
+
+	return true
 }
 
 // Clear removes all events and all listeners, restores Events to an empty value
