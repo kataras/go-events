@@ -1,33 +1,20 @@
 <p align="center">
   <img src="/logo.jpg" height="400">
   <br/>
+</p>
 
  <a href="https://travis-ci.org/kataras/go-events"><img src="https://img.shields.io/travis/kataras/go-events.svg?style=flat-square" alt="Build Status"></a>
-
-
  <a href="https://github.com/avelino/awesome-go"><img src="https://img.shields.io/badge/awesome-%E2%9C%93-ff69b4.svg?style=flat-square" alt="Awesome GoLang"></a>
-
  <a href="http://goreportcard.com/report/kataras/go-events"><img src="https://img.shields.io/badge/-A%2B-F44336.svg?style=flat-square" alt="Report A+"></a>
-
-
  <a href="https://github.com/kataras/go-events/blob/master/LICENSE"><img src="https://img.shields.io/badge/%20license-MIT%20-E91E63.svg?style=flat-square" alt="License"></a>
-
-
-
  <a href="https://github.com/kataras/go-events/releases"><img src="https://img.shields.io/badge/%20release%20-%20v0.0.2-blue.svg?style=flat-square" alt="Releases"></a>
-
  <a href="https://godoc.org/github.com/kataras/go-events"><img src="https://img.shields.io/badge/%20docs-reference-5272B4.svg?style=flat-square" alt="Read me docs"></a>
-
  <a href="https://kataras.rocket.chat/channel/go-events"><img src="https://img.shields.io/badge/%20community-chat-00BCD4.svg?style=flat-square" alt="Chat"></a>
-
-<br/><br/>
+<br/>
 
 Simple EventEmmiter for Go Programming Language. Inspired by <a href="https://nodejs.org/api/events.html">Nodejs EventEmitter</a>.
 
-</p>
-
-
-Quick view
+Overview
 ------------
 `New() EventEmmiter  // New returns a new, empty, EventEmmiter`
 
