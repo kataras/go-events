@@ -3,8 +3,8 @@ package events
 
 import (
 	"log"
-	"sync"
 	"reflect"
+	"sync"
 )
 
 const (
@@ -321,6 +321,10 @@ func (e *emmiter) RemoveAllListeners(evt EventName) bool {
 }
 
 // RemoveListener removes the specified listener from the listener array for the event named eventName.
+func RemoveListener(evt EventName, listener Listener) bool {
+	return defaultEmmiter.RemoveListener(evt, listener)
+}
+
 func (e *emmiter) RemoveListener(evt EventName, listener Listener) bool {
 	if e.evtListeners == nil {
 		return false
@@ -333,7 +337,7 @@ func (e *emmiter) RemoveListener(evt EventName, listener Listener) bool {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	listeners := e.evtListeners[evt];
+	listeners := e.evtListeners[evt]
 
 	if listeners == nil {
 		return false
@@ -351,10 +355,10 @@ func (e *emmiter) RemoveListener(evt EventName, listener Listener) bool {
 	}
 
 	if idx < 0 {
-		return  false
+		return false
 	}
 
-	var modifiedListeners []Listener = nil
+	var modifiedListeners []Listener
 
 	if len(listeners) > 1 {
 		modifiedListeners = append(listeners[:idx], listeners[idx+1:]...)
