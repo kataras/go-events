@@ -3,6 +3,7 @@ package events
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 var testEvents = Events{
@@ -116,6 +117,8 @@ func TestEventsOnce(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		Emit("my_event")
 	}
+
+	time.Sleep(10 * time.Millisecond)
 
 	if l := ListenerCount("my_event"); l > 0 {
 		t.Fatalf("Real event's listeners length count should be: %d but has: %d", 0, l)

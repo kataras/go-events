@@ -5,6 +5,7 @@ import (
 	"log"
 	"reflect"
 	"sync"
+	"sync/atomic"
 )
 
 const (
@@ -72,7 +73,7 @@ type (
 	emmiter struct {
 		maxListeners int
 		evtListeners Events
-		mu           sync.Mutex
+		mu           sync.RWMutex
 	}
 )
 
@@ -142,6 +143,9 @@ func Emit(evt EventName, data ...interface{}) {
 }
 
 func (e *emmiter) Emit(evt EventName, data ...interface{}) {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
 	if e.evtListeners == nil {
 		return // has no listeners to emit/speak yet
 	}
@@ -251,6 +255,21 @@ func Once(evt EventName, listener ...Listener) {
 	defaultEmmiter.Once(evt, listener...)
 }
 
+type oneTimelistener struct {
+	evt        EventName
+	emitter    *emmiter
+	listener   Listener
+	fired      int32
+	executeRef Listener
+}
+
+func (l *oneTimelistener) execute(vals ...interface{}) {
+	if atomic.CompareAndSwapInt32(&l.fired, 0, 1) {
+		l.listener(vals)
+		go l.emitter.RemoveListener(l.evt, l.executeRef)
+	}
+}
+
 func (e *emmiter) Once(evt EventName, listener ...Listener) {
 	if len(listener) == 0 {
 		return
@@ -258,40 +277,14 @@ func (e *emmiter) Once(evt EventName, listener ...Listener) {
 
 	var modifiedListeners []Listener
 
-	if e.evtListeners == nil {
-		e.evtListeners = Events{}
-	}
-
-	for i, l := range listener {
-
-		idx := len(e.evtListeners) + i // get the next index (where this event should be added) and adds the i for the 'capacity'
-
-		func(listener Listener, index int) {
-			fired := false
-			// remove the specific listener from the listeners before fire the real listener
-			modifiedListeners = append(modifiedListeners, func(data ...interface{}) {
-				if e.evtListeners == nil {
-					return
-				}
-				if !fired {
-					// make sure that we don't get a panic(index out of array or nil map here
-					if e.evtListeners[evt] != nil && (len(e.evtListeners[evt]) > index || index == 0) {
-
-						e.mu.Lock()
-						//e.evtListeners[evt] = append(e.evtListeners[evt][:index], e.evtListeners[evt][index+1:]...)
-						// we do not must touch the order because of the pre-defined indexes, we need just to make this listener nil in order to be not executed,
-						// and make the len of listeners increase when listener is not nil, not just the len of listeners.
-						// so set this listener to nil
-						e.evtListeners[evt][index] = nil
-						e.mu.Unlock()
-					}
-					fired = true
-					listener(data...)
-				}
-
-			})
-		}(l, idx)
-
+	for _, listener := range listener {
+		oneTime := &oneTimelistener{
+			evt:      evt,
+			emitter:  e,
+			listener: listener,
+		}
+		oneTime.executeRef = oneTime.execute
+		modifiedListeners = append(modifiedListeners, oneTime.executeRef)
 	}
 	e.AddListener(evt, modifiedListeners...)
 }
