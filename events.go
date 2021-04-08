@@ -10,7 +10,7 @@ import (
 
 const (
 	// Version current version number
-	Version = "0.0.2"
+	Version = "0.1.0"
 	// DefaultMaxListeners is the number of max listeners per event
 	// default EventEmitters will print a warning if more than x listeners are
 	// added to it. This is a useful default which helps finding memory leaks.
@@ -314,6 +314,10 @@ func (e *emmiter) RemoveAllListeners(evt EventName) bool {
 }
 
 // RemoveListener removes the specified listener from the listener array for the event named eventName.
+func RemoveListener(evt EventName, listener Listener) bool {
+	return defaultEmmiter.RemoveListener(evt, listener)
+}
+
 func (e *emmiter) RemoveListener(evt EventName, listener Listener) bool {
 	if e.evtListeners == nil {
 		return false
@@ -347,7 +351,7 @@ func (e *emmiter) RemoveListener(evt EventName, listener Listener) bool {
 		return false
 	}
 
-	var modifiedListeners []Listener = nil
+	var modifiedListeners []Listener
 
 	if len(listeners) > 1 {
 		modifiedListeners = append(listeners[:idx], listeners[idx+1:]...)
