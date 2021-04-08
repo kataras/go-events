@@ -10,7 +10,7 @@ import (
 
 const (
 	// Version current version number
-	Version = "0.0.3"
+	Version = "0.1.0"
 	// DefaultMaxListeners is the number of max listeners per event
 	// default EventEmitters will print a warning if more than x listeners are
 	// added to it. This is a useful default which helps finding memory leaks.
