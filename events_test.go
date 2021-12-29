@@ -2,55 +2,58 @@ package events
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 )
 
-var testEvents = Events{
-	"user_created": []Listener{
-		func(payload ...interface{}) {
+var testEvents = Events[string]{
+	"user_created": []Listener[string]{
+		func(payload string) {
 			fmt.Printf("A new User just created!\n")
 		},
-		func(payload ...interface{}) {
+		func(payload string) {
 			fmt.Printf("A new User just created, *from second event listener\n")
 		},
 	},
-	"user_joined": []Listener{func(payload ...interface{}) {
-		user := payload[0].(string)
-		room := payload[1].(string)
-		fmt.Printf("%s joined to room: %s\n", user, room)
+	"user_joined": []Listener[string]{func(payload string) {
+		if user, room, ok := strings.Cut(payload, " "); ok {
+			fmt.Printf("%s joined to room: %s\n", user, room)
+		}
 	}},
-	"user_left": []Listener{func(payload ...interface{}) {
-		user := payload[0].(string)
-		room := payload[1].(string)
-		fmt.Printf("%s left from the room: %s\n", user, room)
+	"user_left": []Listener[string]{func(payload string) {
+		if user, room, ok := strings.Cut(payload, " "); ok {
+			fmt.Printf("%s left from the room: %s\n", user, room)
+		}
 	}},
 }
 
-func createUser(user string) {
-	Emit("user_created", user)
+func createUser(evts EventEmitter[string], user string) {
+	evts.Emit("user_created", user)
 }
 
-func joinUserTo(user string, room string) {
-	Emit("user_joined", user, room)
+func joinUserTo(evts EventEmitter[string], user string, room string) {
+	evts.Emit("user_joined", user+" "+room)
 }
 
-func leaveFromRoom(user string, room string) {
-	Emit("user_left", user, room)
+func leaveFromRoom(evts EventEmitter[string], user string, room string) {
+	evts.Emit("user_left", user+" "+room)
 }
 
 func ExampleEvents() {
+	evts := New[string]()
+
 	// regiter our events to the default event emmiter
 	for evt, listeners := range testEvents {
-		On(evt, listeners...)
+		evts.On(evt, listeners...)
 	}
 
 	user := "user1"
 	room := "room1"
 
-	createUser(user)
-	joinUserTo(user, room)
-	leaveFromRoom(user, room)
+	createUser(evts, user)
+	joinUserTo(evts, user, room)
+	leaveFromRoom(evts, user, room)
 
 	// Output:
 	// A new User just created!
@@ -60,18 +63,12 @@ func ExampleEvents() {
 }
 
 func TestEvents(t *testing.T) {
-	e := New()
+	e := New[string]()
 	expectedPayload := "this is my payload"
 
-	e.On("my_event", func(payload ...interface{}) {
-		if len(payload) <= 0 {
-			t.Fatal("Expected payload but got nothing")
-		}
-
-		if s, ok := payload[0].(string); !ok {
-			t.Fatalf("Payload is not the correct type, got: %#v", payload[0])
-		} else if s != expectedPayload {
-			t.Fatalf("Eexpected %s, got: %s", expectedPayload, s)
+	e.On("my_event", func(payload string) {
+		if payload != expectedPayload {
+			t.Fatalf("Eexpected %s, got: %s", expectedPayload, payload)
 		}
 	})
 
@@ -99,7 +96,7 @@ func TestEventsOnce(t *testing.T) {
 	Clear()
 
 	var count = 0
-	Once("my_event", func(payload ...interface{}) {
+	Once("my_event", func(payload interface{}) {
 		if count > 0 {
 			t.Fatalf("Once's listener fired more than one time! count: %d", count)
 		}
@@ -115,7 +112,7 @@ func TestEventsOnce(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		Emit("my_event")
+		Emit("my_event", nil)
 	}
 
 	time.Sleep(10 * time.Millisecond)
@@ -132,10 +129,10 @@ func TestEventsOnce(t *testing.T) {
 
 func TestRemoveListener(t *testing.T) {
 	// on default
-	e := New()
+	e := New[string]()
 
 	var count = 0
-	listener := func(payload ...interface{}) {
+	listener := func(payload string) {
 		if count > 1 {
 			t.Fatal("Event listener should be removed")
 		}
@@ -144,10 +141,10 @@ func TestRemoveListener(t *testing.T) {
 	}
 
 	e.AddListener("my_event", listener)
-	e.AddListener("my_event", func(payload ...interface{}) {})
-	e.AddListener("another_event", func(payload ...interface{}) {})
+	e.AddListener("my_event", func(payload string) {})
+	e.AddListener("another_event", func(payload string) {})
 
-	e.Emit("my_event")
+	e.Emit("my_event", "test")
 
 	if e.RemoveListener("my_event", listener) != true {
 		t.Fatal("Should return 'true' when removes found listener")
@@ -165,5 +162,5 @@ func TestRemoveListener(t *testing.T) {
 		t.Fatal("Length of 'my_event' event listeners must be 1")
 	}
 
-	e.Emit("my_event")
+	e.Emit("my_event", "test")
 }

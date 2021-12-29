@@ -1,4 +1,4 @@
-// Package events provides simple EventEmmiter support for Go Programming Language
+// Package go-events provides simple EventEmitter support for Go Programming Language.
 package events
 
 import (
@@ -10,7 +10,7 @@ import (
 
 const (
 	// Version current version number
-	Version = "0.0.2"
+	Version = "1.0.0"
 	// DefaultMaxListeners is the number of max listeners per event
 	// default EventEmitters will print a warning if more than x listeners are
 	// added to it. This is a useful default which helps finding memory leaks.
@@ -24,21 +24,21 @@ const (
 
 type (
 	// EventName is just a type of string, it's the event name
-	EventName string
+	EventName = string
 	// Listener is the type of a Listener, it's a func which receives any,optional, arguments from the caller/emmiter
-	Listener func(...interface{})
-	// Events the type for registered listeners, it's just a map[string][]func(...interface{})
-	Events map[EventName][]Listener
+	Listener[T any] func(T)
+	// Events the type for registered listeners, it's just a map[string][]func(T)
+	Events[T any] map[EventName][]Listener[T]
 
-	// EventEmmiter is the message/or/event manager
-	EventEmmiter interface {
+	// EventEmitter is the message/or/event manager
+	EventEmitter[T any] interface {
 		// AddListener is an alias for .On(eventName, listener).
-		AddListener(EventName, ...Listener)
+		AddListener(EventName, ...Listener[T])
 		// Emit fires a particular event,
 		// Synchronously calls each of the listeners registered for the event named
 		// eventName, in the order they were registered,
 		// passing the supplied arguments to each.
-		Emit(EventName, ...interface{})
+		Emit(EventName, T)
 		// EventNames returns an array listing the events for which the emitter has registered listeners.
 		// The values in the array will be strings.
 		EventNames() []EventName
@@ -48,19 +48,19 @@ type (
 		// ListenerCount returns the length of all registered listeners to a particular event
 		ListenerCount(EventName) int
 		// Listeners returns a copy of the array of listeners for the event named eventName.
-		Listeners(EventName) []Listener
+		Listeners(EventName) []Listener[T]
 		// On registers a particular listener for an event, func receiver parameter(s) is/are optional
-		On(EventName, ...Listener)
+		On(EventName, ...Listener[T])
 		// Once adds a one time listener function for the event named eventName.
 		// The next time eventName is triggered, this listener is removed and then invoked.
-		Once(EventName, ...Listener)
+		Once(EventName, ...Listener[T])
 		// RemoveAllListeners removes all listeners, or those of the specified eventName.
 		// Note that it will remove the event itself.
 		// Returns an indicator if event and listeners were found before the remove.
 		RemoveAllListeners(EventName) bool
 		// RemoveListener removes given listener from the event named eventName.
 		// Returns an indicator whether listener was removed
-		RemoveListener(EventName, Listener) bool
+		RemoveListener(EventName, Listener[T]) bool
 		// Clear removes all events and all listeners, restores Events to an empty value
 		Clear()
 		// SetMaxListeners obviously this function allows the MaxListeners
@@ -70,15 +70,15 @@ type (
 		Len() int
 	}
 
-	emmiter struct {
+	emmiter[T any] struct {
 		maxListeners int
-		evtListeners Events
+		evtListeners Events[T]
 		mu           sync.RWMutex
 	}
 )
 
-// CopyTo copies the event listeners to an EventEmmiter
-func (e Events) CopyTo(emmiter EventEmmiter) {
+// CopyTo copies the event listeners to an EventEmitter
+func (e Events[T]) CopyTo(emmiter EventEmitter[T]) {
 	if e != nil && len(e) > 0 {
 		// register the events to/with their listeners
 		for evt, listeners := range e {
@@ -89,22 +89,24 @@ func (e Events) CopyTo(emmiter EventEmmiter) {
 	}
 }
 
-// New returns a new, empty, EventEmmiter
-func New() EventEmmiter {
-	return &emmiter{maxListeners: DefaultMaxListeners, evtListeners: Events{}}
+// New returns a new, empty, EventEmitter
+func New[T any]() EventEmitter[T] {
+	return &emmiter[T]{maxListeners: DefaultMaxListeners, evtListeners: make(Events[T])}
 }
 
+type DefaultType = any
+
 var (
-	_              EventEmmiter = &emmiter{}
-	defaultEmmiter              = New()
+	_              EventEmitter[string] = &emmiter[string]{}
+	defaultEmmiter                      = New[DefaultType]()
 )
 
 // AddListener is an alias for .On(eventName, listener).
-func AddListener(evt EventName, listener ...Listener) {
+func AddListener(evt EventName, listener ...Listener[DefaultType]) {
 	defaultEmmiter.AddListener(evt, listener...)
 }
 
-func (e *emmiter) AddListener(evt EventName, listener ...Listener) {
+func (e *emmiter[T]) AddListener(evt EventName, listener ...Listener[T]) {
 	if len(listener) == 0 {
 		return
 	}
@@ -113,7 +115,7 @@ func (e *emmiter) AddListener(evt EventName, listener ...Listener) {
 	defer e.mu.Unlock()
 
 	if e.evtListeners == nil {
-		e.evtListeners = Events{}
+		e.evtListeners = make(Events[T])
 	}
 
 	listeners := e.evtListeners[evt]
@@ -128,7 +130,7 @@ func (e *emmiter) AddListener(evt EventName, listener ...Listener) {
 	}
 
 	if listeners == nil {
-		listeners = make([]Listener, e.maxListeners)
+		listeners = make([]Listener[T], e.maxListeners)
 	}
 
 	e.evtListeners[evt] = append(listeners, listener...)
@@ -138,11 +140,11 @@ func (e *emmiter) AddListener(evt EventName, listener ...Listener) {
 // Synchronously calls each of the listeners registered for the event named
 // eventName, in the order they were registered,
 // passing the supplied arguments to each.
-func Emit(evt EventName, data ...interface{}) {
-	defaultEmmiter.Emit(evt, data...)
+func Emit(evt EventName, data DefaultType) {
+	defaultEmmiter.Emit(evt, data)
 }
 
-func (e *emmiter) Emit(evt EventName, data ...interface{}) {
+func (e *emmiter[T]) Emit(evt EventName, data T) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
@@ -153,7 +155,7 @@ func (e *emmiter) Emit(evt EventName, data ...interface{}) {
 		for i := range listeners {
 			l := listeners[i]
 			if l != nil {
-				l(data...)
+				l(data)
 			}
 		}
 	}
@@ -165,7 +167,7 @@ func EventNames() []EventName {
 	return defaultEmmiter.EventNames()
 }
 
-func (e *emmiter) EventNames() []EventName {
+func (e *emmiter[T]) EventNames() []EventName {
 	if e.evtListeners == nil || e.Len() == 0 {
 		return nil
 	}
@@ -185,7 +187,7 @@ func GetMaxListeners() int {
 	return defaultEmmiter.GetMaxListeners()
 }
 
-func (e *emmiter) GetMaxListeners() int {
+func (e *emmiter[T]) GetMaxListeners() int {
 	return e.maxListeners
 }
 
@@ -194,7 +196,7 @@ func ListenerCount(evt EventName) int {
 	return defaultEmmiter.ListenerCount(evt)
 }
 
-func (e *emmiter) ListenerCount(evt EventName) int {
+func (e *emmiter[T]) ListenerCount(evt EventName) int {
 	if e.evtListeners == nil {
 		return 0
 	}
@@ -213,15 +215,15 @@ func (e *emmiter) ListenerCount(evt EventName) int {
 }
 
 // Listeners returns a copy of the array of listeners for the event named eventName.
-func Listeners(evt EventName) []Listener {
+func Listeners(evt EventName) []Listener[DefaultType] {
 	return defaultEmmiter.Listeners(evt)
 }
 
-func (e *emmiter) Listeners(evt EventName) []Listener {
+func (e *emmiter[T]) Listeners(evt EventName) []Listener[T] {
 	if e.evtListeners == nil {
 		return nil
 	}
-	var listeners []Listener
+	var listeners []Listener[T]
 	if evtListeners := e.evtListeners[evt]; evtListeners != nil {
 		// do not pass any inactive/removed listeners(nil)
 		for _, l := range evtListeners {
@@ -241,44 +243,44 @@ func (e *emmiter) Listeners(evt EventName) []Listener {
 }
 
 // On registers a particular listener for an event, func receiver parameter(s) is/are optional
-func On(evt EventName, listener ...Listener) {
+func On(evt EventName, listener ...Listener[DefaultType]) {
 	defaultEmmiter.On(evt, listener...)
 }
 
-func (e *emmiter) On(evt EventName, listener ...Listener) {
+func (e *emmiter[T]) On(evt EventName, listener ...Listener[T]) {
 	e.AddListener(evt, listener...)
 }
 
 // Once adds a one time listener function for the event named eventName.
 // The next time eventName is triggered, this listener is removed and then invoked.
-func Once(evt EventName, listener ...Listener) {
+func Once(evt EventName, listener ...Listener[DefaultType]) {
 	defaultEmmiter.Once(evt, listener...)
 }
 
-type oneTimelistener struct {
+type oneTimelistener[T any] struct {
 	evt        EventName
-	emitter    *emmiter
-	listener   Listener
+	emitter    *emmiter[T]
+	listener   Listener[T]
 	fired      int32
-	executeRef Listener
+	executeRef Listener[T]
 }
 
-func (l *oneTimelistener) execute(vals ...interface{}) {
+func (l *oneTimelistener[T]) execute(data T) {
 	if atomic.CompareAndSwapInt32(&l.fired, 0, 1) {
-		l.listener(vals)
+		l.listener(data)
 		go l.emitter.RemoveListener(l.evt, l.executeRef)
 	}
 }
 
-func (e *emmiter) Once(evt EventName, listener ...Listener) {
+func (e *emmiter[T]) Once(evt EventName, listener ...Listener[T]) {
 	if len(listener) == 0 {
 		return
 	}
 
-	var modifiedListeners []Listener
+	var modifiedListeners []Listener[T]
 
 	for _, listener := range listener {
-		oneTime := &oneTimelistener{
+		oneTime := &oneTimelistener[T]{
 			evt:      evt,
 			emitter:  e,
 			listener: listener,
@@ -296,7 +298,7 @@ func RemoveAllListeners(evt EventName) bool {
 	return defaultEmmiter.RemoveAllListeners(evt)
 }
 
-func (e *emmiter) RemoveAllListeners(evt EventName) bool {
+func (e *emmiter[T]) RemoveAllListeners(evt EventName) bool {
 	if e.evtListeners == nil {
 		return false // has nothing to remove
 	}
@@ -314,7 +316,7 @@ func (e *emmiter) RemoveAllListeners(evt EventName) bool {
 }
 
 // RemoveListener removes the specified listener from the listener array for the event named eventName.
-func (e *emmiter) RemoveListener(evt EventName, listener Listener) bool {
+func (e *emmiter[T]) RemoveListener(evt EventName, listener Listener[T]) bool {
 	if e.evtListeners == nil {
 		return false
 	}
@@ -347,7 +349,7 @@ func (e *emmiter) RemoveListener(evt EventName, listener Listener) bool {
 		return false
 	}
 
-	var modifiedListeners []Listener = nil
+	var modifiedListeners []Listener[T]
 
 	if len(listeners) > 1 {
 		modifiedListeners = append(listeners[:idx], listeners[idx+1:]...)
@@ -363,8 +365,12 @@ func Clear() {
 	defaultEmmiter.Clear()
 }
 
-func (e *emmiter) Clear() {
-	e.evtListeners = Events{}
+func (e *emmiter[T]) Clear() {
+	e.mu.Lock()
+	for eventName := range e.evtListeners {
+		delete(e.evtListeners, eventName)
+	}
+	e.mu.Unlock()
 }
 
 // SetMaxListeners obviously this function allows the MaxListeners
@@ -373,7 +379,7 @@ func SetMaxListeners(n int) {
 	defaultEmmiter.SetMaxListeners(n)
 }
 
-func (e *emmiter) SetMaxListeners(n int) {
+func (e *emmiter[T]) SetMaxListeners(n int) {
 	if n < 0 {
 		if EnableWarning {
 			log.Printf("(events) warning: MaxListeners must be positive number, tried to set: %d", n)
@@ -388,7 +394,7 @@ func Len() int {
 	return defaultEmmiter.Len()
 }
 
-func (e *emmiter) Len() int {
+func (e *emmiter[T]) Len() int {
 	if e.evtListeners == nil {
 		return 0
 	}

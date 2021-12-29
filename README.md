@@ -1,22 +1,16 @@
 <p align="center">
-  <img src="/logo.jpg" height="400">
+  <img src="./logo.jpg" height="400">
   <br/>
 </p>
 
- <a href="https://travis-ci.org/kataras/go-events"><img src="https://img.shields.io/travis/kataras/go-events.svg?style=flat-square" alt="Build Status"></a>
- <a href="https://github.com/avelino/awesome-go"><img src="https://img.shields.io/badge/awesome-%E2%9C%93-ff69b4.svg?style=flat-square" alt="Awesome GoLang"></a>
- <a href="http://goreportcard.com/report/kataras/go-events"><img src="https://img.shields.io/badge/-A%2B-F44336.svg?style=flat-square" alt="Report A+"></a>
- <a href="https://github.com/kataras/go-events/blob/master/LICENSE"><img src="https://img.shields.io/badge/%20license-MIT%20-E91E63.svg?style=flat-square" alt="License"></a>
- <a href="https://github.com/kataras/go-events/releases"><img src="https://img.shields.io/badge/%20release%20-%20v0.0.2-blue.svg?style=flat-square" alt="Releases"></a>
- <a href="https://godoc.org/github.com/kataras/go-events"><img src="https://img.shields.io/badge/%20docs-reference-5272B4.svg?style=flat-square" alt="Read me docs"></a>
- <a href="https://kataras.rocket.chat/channel/go-events"><img src="https://img.shields.io/badge/%20community-chat-00BCD4.svg?style=flat-square" alt="Chat"></a>
+[![build status](https://img.shields.io/github/workflow/status/kataras/go-events/CI/master?style=for-the-badge)](https://github.com/kataras/go-events/actions) [![chat](https://img.shields.io/gitter/room/events/community.svg?color=cc2b5e&logo=gitter&style=for-the-badge)](https://gitter.im/events/community) [![donate](https://img.shields.io/badge/support-Go--Events-blue.svg?style=for-the-badge&logo=paypal)](https://iris-go.com/donate)
 <br/>
 
-Simple EventEmmiter for Go Programming Language. Inspired by <a href="https://nodejs.org/api/events.html">Nodejs EventEmitter</a>.
+Simple EventEmitter for Go Programming Language 1.18+ (**Generics** support). Inspired by <a href="https://nodejs.org/api/events.html">Nodejs EventEmitter</a>.
 
 Overview
 ------------
-`New() EventEmmiter  // New returns a new, empty, EventEmmiter`
+`New[T any]() EventEmitter[T]  // New returns a new, empty, EventEmitter of T`
 
 
 ```go
@@ -59,26 +53,25 @@ Len() int
 ```go
 import "github.com/kataras/go-events"
 
-// initialize a new EventEmmiter to use
-e := events.New()
+// initialize a new EventEmitter to use
+e := events.New[string]()
 
 // register an event with name "my_event" and one listener
-e.On("my_event", func(payload ...interface{}) {
-  message := payload[0].(string)
+e.On("my_event", func(message string) {
   print(message) // prints "this is my payload"
 })
 
 // fire the 'my_event' event
-e.Emit("my_event", "this is my payload")
+e.Emit("my_event", "some message")
 
 ```
 
-Default/global EventEmmiter
+Default/global EventEmitter
 ```go
 
-// register an event with name "my_event" and one listener to the global(package level) default EventEmmiter
-events.On("my_event", func(payload ...interface{}) {
-  message := payload[0].(string)
+// register an event with name "my_event" and one listener to the global(package level) default EventEmitter
+events.On("my_event", func(payload interface{}) {
+  message := payload.(string)
   print(message) // prints "this is my payload"
 })
 
@@ -90,31 +83,32 @@ events.Emit("my_event", "this is my payload")
 Remove an event
 
 ```go
+e := New[int]()
 
-events.On("my_event", func(payload ...interface{}) {
+e.On("my_event", func(payload int) {
   // first listener...
-},func (payload ...interface{}){
+},func (payload int){
   // second listener...
 })
 
-println(events.Len()) // prints 1
-println(events.ListenerCount("my_event")) // prints 2
+println(e.Len()) // prints 1
+println(e.ListenerCount("my_event")) // prints 2
 
 // Remove our event, when/if we don't need this or we want to clear all of its listeners
-events.RemoveAllListeners("my_event")
+e.RemoveAllListeners("my_event")
 
-println(events.Len()) // prints 0
-println(events.ListenerCount("my_event")) // prints 0
+println(e.Len()) // prints 0
+println(e.ListenerCount("my_event")) // prints 0
 
 
 ```
 Installation
 ------------
 
-The only requirement is the [Go Programming Language](https://golang.org/dl).
+The only requirement is the [Go Programming Language](https://golang.org/dl), at least version 1.18.
 
 ```bash
-$ go get -u github.com/kataras/go-events
+$ go get github.com/kataras/go-events@latest
 ```
 
 
@@ -126,7 +120,7 @@ Explore [these questions](https://github.com/kataras/go-events/issues?go-events=
 Versioning
 ------------
 
-Current: v0.0.2
+Current: v1.0.0
 
 Read more about Semantic Versioning 2.0.0
 
@@ -139,11 +133,6 @@ People
 
 The author of go-events is [@kataras](https://github.com/kataras).
 
-If you're **willing to donate**, feel free to send **any** amount through paypal
-
-[![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=kataras2006%40hotmail%2ecom&lc=GR&item_name=Iris%20web%20framework&item_number=iriswebframeworkdonationid2016&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)
-
-
 Contributing
 ------------
 
@@ -155,6 +144,3 @@ License
 This project is licensed under the MIT License.
 
 License can be found [here](LICENSE).
-
-[Chat Widget]: https://img.shields.io/badge/community-chat-00BCD4.svg?style=flat-square
-[Chat]: https://kataras.rocket.chat/channel/go-events
