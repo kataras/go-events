@@ -151,7 +151,8 @@ func (e *emmiter[T]) Emit(evt EventName, data T) {
 	if e.evtListeners == nil {
 		return // has no listeners to emit/speak yet
 	}
-	if listeners := e.evtListeners[evt]; listeners != nil && len(listeners) > 0 { // len() should be just fine, but for any case on future...
+
+	if listeners := e.evtListeners[evt]; len(listeners) > 0 {
 		for i := range listeners {
 			l := listeners[i]
 			if l != nil {
@@ -168,15 +169,13 @@ func EventNames() []EventName {
 }
 
 func (e *emmiter[T]) EventNames() []EventName {
-	if e.evtListeners == nil || e.Len() == 0 {
+	if e.evtListeners == nil {
 		return nil
 	}
 
-	names := make([]EventName, e.Len(), e.Len())
-	i := 0
+	names := make([]EventName, 0, e.Len())
 	for k := range e.evtListeners {
-		names[i] = k
-		i++
+		names = append(names, k)
 	}
 	return names
 }
@@ -197,21 +196,22 @@ func ListenerCount(evt EventName) int {
 }
 
 func (e *emmiter[T]) ListenerCount(evt EventName) int {
-	if e.evtListeners == nil {
-		return 0
-	}
-	len := 0
+	e.mu.RLock()
+	evtListeners := e.evtListeners[evt]
+	e.mu.RUnlock()
 
-	if evtListeners := e.evtListeners[evt]; evtListeners != nil { // len() should be just fine, but for any case on future...
-		for _, l := range evtListeners {
-			if l == nil {
-				continue
-			}
-			len++
+	return e.listenerCount(evtListeners)
+}
+
+func (e *emmiter[T]) listenerCount(evtListeners []Listener[T]) (count int) {
+	for _, l := range evtListeners {
+		if l == nil {
+			continue
 		}
+		count++
 	}
 
-	return len
+	return
 }
 
 // Listeners returns a copy of the array of listeners for the event named eventName.
@@ -302,14 +302,14 @@ func (e *emmiter[T]) RemoveAllListeners(evt EventName) bool {
 	if e.evtListeners == nil {
 		return false // has nothing to remove
 	}
+
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	if listeners := e.evtListeners[evt]; listeners != nil {
-		l := e.ListenerCount(evt) // in order to not get the len of any inactive/removed listeners
+
+	if listeners, ok := e.evtListeners[evt]; ok {
+		count := e.listenerCount(listeners)
 		delete(e.evtListeners, evt)
-		if l > 0 {
-			return true
-		}
+		return count > 0
 	}
 
 	return false
