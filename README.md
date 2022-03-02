@@ -3,16 +3,10 @@
   <br/>
 </p>
 
- <a href="https://travis-ci.org/kataras/go-events"><img src="https://img.shields.io/travis/kataras/go-events.svg?style=flat-square" alt="Build Status"></a>
- <a href="https://github.com/avelino/awesome-go"><img src="https://img.shields.io/badge/awesome-%E2%9C%93-ff69b4.svg?style=flat-square" alt="Awesome GoLang"></a>
- <a href="http://goreportcard.com/report/kataras/go-events"><img src="https://img.shields.io/badge/-A%2B-F44336.svg?style=flat-square" alt="Report A+"></a>
- <a href="https://github.com/kataras/go-events/blob/master/LICENSE"><img src="https://img.shields.io/badge/%20license-MIT%20-E91E63.svg?style=flat-square" alt="License"></a>
- <a href="https://github.com/kataras/go-events/releases"><img src="https://img.shields.io/badge/%20release%20-%20v0.0.2-blue.svg?style=flat-square" alt="Releases"></a>
- <a href="https://godoc.org/github.com/kataras/go-events"><img src="https://img.shields.io/badge/%20docs-reference-5272B4.svg?style=flat-square" alt="Read me docs"></a>
- <a href="https://kataras.rocket.chat/channel/go-events"><img src="https://img.shields.io/badge/%20community-chat-00BCD4.svg?style=flat-square" alt="Chat"></a>
+[![build status](https://img.shields.io/github/workflow/status/kataras/go-events/CI/dev?style=for-the-badge)](https://github.com/kataras/go-events/actions) [![chat](https://img.shields.io/gitter/room/events/community.svg?color=cc2b5e&logo=gitter&style=for-the-badge)](https://gitter.im/events/community) [![donate](https://img.shields.io/badge/support-Go--Events-blue.svg?style=for-the-badge&logo=paypal)](https://iris-go.com/donate)
 <br/>
 
-Simple EventEmmiter for Go Programming Language. Inspired by <a href="https://nodejs.org/api/events.html">Nodejs EventEmitter</a>.
+Simple EventEmmiter for Go Programming Language. Inspired by [Nodejs EventEmitter](https://nodejs.org/api/events.html). For **Generics** support please wait until go1.18 stable is released, until then switch to [dev branch](https://github.com/kataras/go-events/tree/dev) instead.
 
 Overview
 ------------
@@ -126,7 +120,7 @@ Explore [these questions](https://github.com/kataras/go-events/issues?go-events=
 Versioning
 ------------
 
-Current: v0.0.2
+Current: v0.0.3
 
 Read more about Semantic Versioning 2.0.0
 
@@ -134,20 +128,10 @@ Read more about Semantic Versioning 2.0.0
  - https://en.wikipedia.org/wiki/Software_versioning
  - https://wiki.debian.org/UpstreamGuide#Releases_and_Versions
 
-People
-------------
-
-The author of go-events is [@kataras](https://github.com/kataras).
-
-If you're **willing to donate**, feel free to send **any** amount through paypal
-
-[![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=kataras2006%40hotmail%2ecom&lc=GR&item_name=Iris%20web%20framework&item_number=iriswebframeworkdonationid2016&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)
-
-
 Contributing
 ------------
 
-If you are interested in contributing to the go-events project, please make a PR.
+If you are interested in contributing to the go-events project, please prepare a PR.
 
 License
 ------------
@@ -155,6 +139,3 @@ License
 This project is licensed under the MIT License.
 
 License can be found [here](LICENSE).
-
-[Chat Widget]: https://img.shields.io/badge/community-chat-00BCD4.svg?style=flat-square
-[Chat]: https://kataras.rocket.chat/channel/go-events

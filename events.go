@@ -10,7 +10,7 @@ import (
 
 const (
 	// Version current version number
-	Version = "0.0.2"
+	Version = "0.0.3"
 	// DefaultMaxListeners is the number of max listeners per event
 	// default EventEmitters will print a warning if more than x listeners are
 	// added to it. This is a useful default which helps finding memory leaks.
@@ -149,7 +149,7 @@ func (e *emmiter) Emit(evt EventName, data ...interface{}) {
 	if e.evtListeners == nil {
 		return // has no listeners to emit/speak yet
 	}
-	if listeners := e.evtListeners[evt]; listeners != nil && len(listeners) > 0 { // len() should be just fine, but for any case on future...
+	if listeners := e.evtListeners[evt]; len(listeners) > 0 {
 		for i := range listeners {
 			l := listeners[i]
 			if l != nil {
@@ -170,10 +170,10 @@ func (e *emmiter) EventNames() []EventName {
 		return nil
 	}
 
-	names := make([]EventName, e.Len(), e.Len())
+	names := make([]EventName, 0, e.Len())
 	i := 0
 	for k := range e.evtListeners {
-		names[i] = k
+		names = append(names, k)
 		i++
 	}
 	return names
@@ -194,22 +194,23 @@ func ListenerCount(evt EventName) int {
 	return defaultEmmiter.ListenerCount(evt)
 }
 
-func (e *emmiter) ListenerCount(evt EventName) int {
-	if e.evtListeners == nil {
-		return 0
-	}
-	len := 0
+func (e *emmiter) ListenerCount(evt EventName) (count int) {
+	e.mu.RLock()
+	evtListeners := e.evtListeners[evt]
+	e.mu.RUnlock()
 
-	if evtListeners := e.evtListeners[evt]; evtListeners != nil { // len() should be just fine, but for any case on future...
-		for _, l := range evtListeners {
-			if l == nil {
-				continue
-			}
-			len++
+	return e.listenerCount(evtListeners)
+}
+
+func (e *emmiter) listenerCount(evtListeners []Listener) (count int) {
+	for _, l := range evtListeners {
+		if l == nil {
+			continue
 		}
+		count++
 	}
 
-	return len
+	return
 }
 
 // Listeners returns a copy of the array of listeners for the event named eventName.
@@ -297,17 +298,17 @@ func RemoveAllListeners(evt EventName) bool {
 }
 
 func (e *emmiter) RemoveAllListeners(evt EventName) bool {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
 	if e.evtListeners == nil {
 		return false // has nothing to remove
 	}
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	if listeners := e.evtListeners[evt]; listeners != nil {
-		l := e.ListenerCount(evt) // in order to not get the len of any inactive/removed listeners
+
+	if listeners, ok := e.evtListeners[evt]; ok {
+		count := e.listenerCount(listeners)
 		delete(e.evtListeners, evt)
-		if l > 0 {
-			return true
-		}
+		return count > 0
 	}
 
 	return false
