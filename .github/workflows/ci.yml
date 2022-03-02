@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master, dev ]
+    branches: [ dev ]
   pull_request:
-    branches: [ master, dev ]
+    branches: [ dev ]
 
 jobs:
 
@@ -12,16 +12,13 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        go_version: [1.18.0-beta1]
-
     steps:
 
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: ${{ matrix.go_version }}
+        stable: 'false'
+        go-version: '1.18.0-beta1'
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
