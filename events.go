@@ -266,7 +266,7 @@ type oneTimelistener struct {
 
 func (l *oneTimelistener) execute(vals ...interface{}) {
 	if atomic.CompareAndSwapInt32(&l.fired, 0, 1) {
-		l.listener(vals)
+		l.listener(vals...)
 		go l.emitter.RemoveListener(l.evt, l.executeRef)
 	}
 }
