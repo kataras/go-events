@@ -3,7 +3,7 @@
   <br/>
 </p>
 
-[![build status](https://img.shields.io/github/workflow/status/kataras/go-events/CI/dev?style=for-the-badge)](https://github.com/kataras/go-events/actions) [![chat](https://img.shields.io/gitter/room/events/community.svg?color=cc2b5e&logo=gitter&style=for-the-badge)](https://gitter.im/events/community) [![donate](https://img.shields.io/badge/support-Go--Events-blue.svg?style=for-the-badge&logo=paypal)](https://iris-go.com/donate)
+[![build status](https://img.shields.io/github/actions/workflow/status/kataras/go-events/ci.yml?style=for-the-badge)](https://github.com/kataras/go-events/actions) [![chat](https://img.shields.io/gitter/room/events/community.svg?color=cc2b5e&logo=gitter&style=for-the-badge)](https://gitter.im/events/community) [![donate](https://img.shields.io/badge/support-Go--Events-blue.svg?style=for-the-badge&logo=paypal)](https://iris-go.com/donate)
 <br/>
 
 Simple EventEmmiter for Go Programming Language. Inspired by [Nodejs EventEmitter](https://nodejs.org/api/events.html). For **Generics** support please wait until go1.18 stable is released, until then switch to [dev branch](https://github.com/kataras/go-events/tree/dev) instead.
