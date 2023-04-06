@@ -103,6 +103,9 @@ func TestEventsOnce(t *testing.T) {
 		if count > 0 {
 			t.Fatalf("Once's listener fired more than one time! count: %d", count)
 		}
+		if payload[0] != "foo" {
+			t.Fatalf("Once's listener payload is incorrect: %+v", payload)
+		}
 		count++
 	})
 
@@ -115,7 +118,7 @@ func TestEventsOnce(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		Emit("my_event")
+		Emit("my_event", "foo")
 	}
 
 	time.Sleep(10 * time.Millisecond)
